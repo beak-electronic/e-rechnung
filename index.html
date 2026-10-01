@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="E-Rechnung" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c1c1e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="PDF-Rechnung in ZUGFeRD / Factur-X umwandeln – installierbare PWA (iPad, Windows Chrome)" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <!-- iOS Home Screen: relative paths, no ?v= -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" type="image/png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" type="image/png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167.png" type="image/png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png" type="image/png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png" type="image/png" />
+  <link rel="apple-touch-icon-precomposed" href="apple-touch-icon-precomposed.png" type="image/png" />
+  <link rel="icon" type="image/png" sizes="180x180" href="apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/extra.css" />
+  <title>E-Rechnung</title>
+</head>
+<body>
+  <script>
+    (function () {
+      try {
+        var standalone = window.navigator.standalone === true
+          || window.matchMedia('(display-mode: standalone)').matches
+          || window.matchMedia('(display-mode: window-controls-overlay)').matches;
+        if (standalone) document.documentElement.setAttribute('data-standalone', '1');
+      } catch (e) {}
+    })();
+  </script>
+  <div class="ios-pwa-status-strip" aria-hidden="true"></div>
+  <!-- HOME -->
+  <div id="home" class="home">
+    <header class="app-topbar">
+      <h1 class="app-heading">E-Rechnung</h1>
+      <span class="app-beak" aria-label="BEAK"><span class="beak-letters">B&nbsp;E&nbsp;A&nbsp;K</span><span class="beak-dot">•</span></span>
+    </header>
+    <div class="home-scroll">
+    <div class="wrap">
+
+      <section class="open-section" aria-labelledby="open-heading">
+        <h2 id="open-heading" class="section-title open-title">Umwandeln</h2>
+        <p class="open-copy">
+          PDF-Rechnung wählen oder auf den Button ziehen. Die App liest die Felder
+          und speichert eine ZUGFeRD-Datei (PDF + XML).
+        </p>
+        <label class="field-label" for="profile">ZUGFeRD-Profil</label>
+        <select id="profile" class="profile-select" aria-label="ZUGFeRD-Profil">
+          <option value="en16931" selected>EN 16931 (Comfort)</option>
+          <option value="xrechnung">XRechnung</option>
+          <option value="basic">BASIC</option>
+          <option value="minimum">MINIMUM</option>
+        </select>
+        <p class="status" id="status" role="status">PDF auf den Button ziehen oder tippen</p>
+        <button type="button" class="btn btn-prominent drop-btn" id="btn-drop">PDF Rechnung wählen</button>
+      </section>
+
+      <div class="home-footer-row">
+        <p class="home-footer">
+          Version 2.2<br />
+          © BEAK electronic engineering GmbH &amp; Co. KG
+        </p>
+        <button type="button" class="footer-settings-btn" id="btn-home-settings" aria-label="Einstellungen" title="Einstellungen">
+          <img class="pill-icon" src="icons/settings_btn.png" alt="" width="40" height="40" draggable="false" />
+        </button>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- REVIEW -->
+  <div id="review" class="home review-view hidden">
+    <header class="app-topbar">
+      <button type="button" class="btn-back app-heading-btn" id="btn-back">← Zurück</button>
+      <span class="app-beak" aria-label="BEAK"><span class="beak-letters">B&nbsp;E&nbsp;A&nbsp;K</span><span class="beak-dot">•</span></span>
+    </header>
+    <div class="home-scroll">
+    <div class="wrap">
+
+      <div class="review-toolbar">
+        <p class="file-chip" id="file-chip"></p>
+      </div>
+      <p class="profile-chip" id="profile-chip"></p>
+      <p class="extract-note">Aus der PDF gelesen – bitte prüfen, dann ZUGFeRD erzeugen.</p>
+
+      <div id="result-card" class="review-card result-card hidden">
+        <h3>Fertige Datei</h3>
+        <p class="file-chip" id="result-filename"></p>
+        <p class="result-copy">Die Felder darunter sind in der XML eingebettet. Datei hier speichern:</p>
+        <button type="button" class="btn btn-prominent" id="btn-download">ZUGFeRD-PDF herunterladen</button>
+        <button type="button" class="btn btn-text" id="btn-download-xml">XML herunterladen</button>
+      </div>
+
+      <div class="review-card" id="card-meta">
+        <h3>Rechnung</h3>
+        <div class="review-grid">
+          <label>Rechnungsnummer<input id="f-invoiceNumber" autocomplete="off" /></label>
+          <label>Währung<input id="f-currency" autocomplete="off" /></label>
+          <label>Rechnungsdatum<input id="f-issueDate" placeholder="TT.MM.JJJJ" autocomplete="off" /></label>
+          <label>Fälligkeitsdatum<input id="f-dueDate" placeholder="TT.MM.JJJJ" autocomplete="off" /></label>
+          <label>Lieferdatum<input id="f-deliveryDate" placeholder="TT.MM.JJJJ" autocomplete="off" /></label>
+        </div>
+      </div>
+
+      <div class="review-card" id="card-seller">
+        <h3>Verkäufer</h3>
+        <div class="review-grid">
+          <label style="grid-column:1/-1">Name<input id="f-seller-name" autocomplete="organization" /></label>
+          <label style="grid-column:1/-1">Straße<input id="f-seller-street" autocomplete="street-address" /></label>
+          <label>PLZ Ort<input id="f-seller-zipCity" autocomplete="postal-code" /></label>
+          <label>Land<input id="f-seller-country" autocomplete="country" /></label>
+          <label>USt-IdNr.<input id="f-seller-vatId" autocomplete="off" /></label>
+          <label>Steuernummer<input id="f-seller-taxNumber" autocomplete="off" /></label>
+          <label>IBAN<input id="f-seller-iban" autocomplete="off" /></label>
+          <label>BIC<input id="f-seller-bic" autocomplete="off" /></label>
+          <label style="grid-column:1/-1">E-Mail<input id="f-seller-email" autocomplete="email" /></label>
+        </div>
+      </div>
+
+      <div class="review-card" id="card-buyer">
+        <h3>Käufer</h3>
+        <div class="review-grid">
+          <label style="grid-column:1/-1">Name<input id="f-buyer-name" autocomplete="organization" /></label>
+          <label style="grid-column:1/-1">Straße<input id="f-buyer-street" autocomplete="street-address" /></label>
+          <label>PLZ Ort<input id="f-buyer-zipCity" autocomplete="postal-code" /></label>
+          <label>Land<input id="f-buyer-country" autocomplete="country" /></label>
+          <label>USt-IdNr.<input id="f-buyer-vatId" autocomplete="off" /></label>
+          <label>Steuernummer<input id="f-buyer-taxNumber" autocomplete="off" /></label>
+        </div>
+      </div>
+
+      <div class="review-card" id="card-amounts">
+        <h3>Beträge</h3>
+        <div class="review-grid">
+          <label>Netto<input id="f-net" inputmode="decimal" autocomplete="off" /></label>
+          <label>MwSt. %<input id="f-vatRate" inputmode="decimal" autocomplete="off" /></label>
+          <label>MwSt. Betrag<input id="f-vatAmount" inputmode="decimal" autocomplete="off" /></label>
+          <label>Brutto<input id="f-gross" inputmode="decimal" autocomplete="off" /></label>
+        </div>
+      </div>
+
+      <div class="review-card" id="card-lines">
+        <h3>Positionen</h3>
+        <div id="lines-host"></div>
+        <button type="button" class="btn btn-text" id="btn-add-line" style="margin-top:8px">+ Position</button>
+      </div>
+
+      <div class="generate-row">
+        <button type="button" class="btn btn-prominent" id="btn-generate">ZUGFeRD erzeugen</button>
+        <p class="confirm-missing" id="missing-hint" hidden></p>
+      </div>
+
+      <p class="status" id="review-status" role="status"></p>
+    </div>
+    </div>
+  </div>
+
+  <input type="file" id="file-input" accept="application/pdf,.pdf" hidden />
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <dialog id="home-settings-dialog" class="settings-dialog">
+    <form method="dialog" id="home-settings-form">
+      <header class="settings-header">
+        <h2>Einstellungen</h2>
+        <button type="button" class="btn-done" id="btn-home-settings-done" value="done">Fertig</button>
+      </header>
+      <div class="settings-body">
+        <section class="settings-section cardish">
+          <h3>PDF speichern</h3>
+          <label class="field-label" for="settings-save-mode">Speichern-Art</label>
+          <select id="settings-save-mode">
+            <option value="auto">Automatisch (iPad: Teilen, Mac: Datei speichern)</option>
+            <option value="share">Immer Teilen-Menü</option>
+            <option value="download">Immer Datei speichern / Download</option>
+          </select>
+          <p class="hint">Am iPad bleibt Teilen mit „In Dateien sichern“ sinnvoll.</p>
+        </section>
+        <section class="settings-section cardish">
+          <h3>Eigene Firmendaten</h3>
+          <p class="hint">Als Standard-Käufer bei Eingangsrechnungen bzw. Fallback-Verkäufer. Nur lokal auf diesem Gerät gespeichert; Import/Export zur Sicherung.</p>
+          <label class="field-label" for="settings-company-name">Name</label>
+          <input type="text" id="settings-company-name" autocomplete="organization" />
+          <label class="field-label" for="settings-company-street">Adresse</label>
+          <input type="text" id="settings-company-street" autocomplete="street-address" />
+          <label class="field-label" for="settings-company-zipCity">PLZ Ort</label>
+          <input type="text" id="settings-company-zipCity" autocomplete="postal-code" />
+          <label class="field-label" for="settings-company-vatId">USt-IdNr.</label>
+          <input type="text" id="settings-company-vatId" autocomplete="off" />
+          <label class="field-label" for="settings-company-iban">IBAN</label>
+          <input type="text" id="settings-company-iban" autocomplete="off" />
+          <label class="field-label" for="settings-company-bic">BIC</label>
+          <input type="text" id="settings-company-bic" autocomplete="off" />
+          <label class="field-label" for="settings-company-email">E-Mail</label>
+          <input type="email" id="settings-company-email" autocomplete="email" />
+          <div class="settings-btn-row">
+            <button type="button" class="btn-secondary" id="btn-company-import">Importieren</button>
+            <button type="button" class="btn-secondary" id="btn-company-export">Exportieren</button>
+          </div>
+          <input type="file" id="settings-company-import-file" accept=".txt,text/plain" hidden />
+        </section>
+        <section class="settings-section cardish">
+          <h3>Info</h3>
+          <p class="hint">E-Rechnung 2.2<br />© BEAK electronic engineering GmbH &amp; Co. KG</p>
+        </section>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="vendor/pdf-lib.min.js"></script>
+  <script src="vendor/fontkit.umd.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
