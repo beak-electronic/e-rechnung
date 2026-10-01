@@ -3,7 +3,7 @@
 Offline-fähige PWA: visuelle PDF-Rechnung lesen und als **ZUGFeRD / Factur-X**
 (PDF mit eingebettetem CII-XML) speichern.
 
-**Version:** 2.3
+**Version:** 2.4
 
 ## Ablauf
 
