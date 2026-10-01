@@ -3,7 +3,7 @@
 Offline-fähige PWA: visuelle PDF-Rechnung lesen und als **ZUGFeRD / Factur-X**
 (PDF mit eingebettetem CII-XML) speichern.
 
-**Version:** 2.2
+**Version:** 2.3
 
 ## Ablauf
 
@@ -48,3 +48,8 @@ Netlify Drop: Ordnerinhalt von `e-rechnung/` hochladen (siehe `DEPLOY.txt`). Kei
 ## Hinweis
 
 Echte Rechnungs-PDFs und persönliche Firmendaten gehören nicht ins Repository und nicht in Deploy-ZIPs.
+
+## PWA-Identität (GitHub Pages)
+
+Diese App läuft unter `/e-rechnung/` und hat eine eigene Manifest-`id` (`/e-rechnung/`), damit Chrome sie nicht mit anderen BEAK-Apps auf derselben Domain (z. B. Anweisungen) vermischt.
+

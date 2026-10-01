@@ -54,7 +54,9 @@ function showToast(msg) {
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => {
+    const swUrl = new URL('sw.js', window.location.href).href;
+    const scope = new URL('./', window.location.href).href;
+    navigator.serviceWorker.register(swUrl, { scope }).catch((err) => {
       console.warn('SW register failed', err);
     });
   });

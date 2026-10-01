@@ -1,5 +1,5 @@
 /* E-Rechnung – offline app shell (ZUGFeRD / Factur-X) */
-const CACHE = 'e-rechnung-v32';
+const CACHE = 'e-rechnung-v33';
 const ASSETS = [
   './',
   './index.html',
